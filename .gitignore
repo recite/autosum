@@ -17,12 +17,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# =========================
-# Operating System Files
-# =========================
-
-# OSX
-# =========================
+# OSX Files
+# ~~~~~~~~~~~~
 
 .DS_Store
 .AppleDouble
@@ -41,3 +37,8 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Personal directories with notes etc.
+notes/
+testout/
+scripts/
