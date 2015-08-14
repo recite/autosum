@@ -41,5 +41,7 @@ Temporary Items
 # Personal directories with notes etc.
 notes/
 testout/
-scripts/
+scripts/autosumpdf.py
+scripts/searchpdf.py
+scripts/scholar.py
 dev/
