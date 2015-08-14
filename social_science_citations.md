@@ -2,11 +2,11 @@
 
 How the articles are cited varies very widely. Not only is there considerable variation in the citation format, where the citations are placed also varies widely. For instance, in some natural sciences journals citations are footnoted. 
 
-Variation in location of citation is somewhat smaller if we limit ourselves to social science journals. In social science journals, citation abuts the point(s) being cited: "Authors (XYZ) show that moon is a satellite," or "Moon is a satellite (Authors XYZ)." Though [not always][testdata/13.pdf]. 
+Variation in location of citation is somewhat smaller if we limit ourselves to social science journals. In social science journals, citation abuts the point(s) being cited: "Authors (XYZ) show that moon is a satellite," or "Moon is a satellite (Authors XYZ)." Though [not always](testdata/13.pdf). 
 
 Ideally we would like a script that works for all citation formats. But doing so is a challenging task. For one, the domain is unknown. So we attempt to cover the prominent formats, not letting perfect be the enemy of good.  
 
-#### Basic Patterns in Citation
+#### Patterns in Citation
 
 **Number of authors**  
 
