@@ -19,7 +19,7 @@ The tool exploits the labor already expended by scholars in summarizing articles
 
 #### Get the Data
 
-To search for openly accessible pdfs citing the original research article on Google Scholar, use [Scholar.py](scripts/scholar.py). The script  
+To search for openly accessible pdfs citing the original research article on Google Scholar, use [Scholar.py](scripts/scholar.py). 
 
 1. Input: URL to Google Scholar Page of an article.
 2. What the script does:
