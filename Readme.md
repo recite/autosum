@@ -12,8 +12,10 @@ The tool exploits the labor already expended by scholars in summarizing articles
   Iterates through a directory with all the articles citing a particular research article, and using regular expressions, picks up sentences near a citation.
 
 * [Example from Social Science](#example-from-social-science)
- 
-### Get the Data
+
+-----------------------
+
+#### Get the Data
 
 [Scholar.py](scripts/scholar.py)  
 
@@ -23,7 +25,7 @@ The tool exploits the labor already expended by scholars in summarizing articles
    * Downloads a user specified number of publicly available papers (pdfs only for now) that cite the paper to a user specified directory. 
    * Creates a csv that tracks basic characteristics of each of the downloaded paper -- title, url, author names, journal etc. It also dumps relative path to downloaded file.
 
-#### Usage
+##### Usage
 
 ```
 usage: scholar.py [-h] [-u USER] [-p PASSWORD] [-a AUTHOR] [-d DIR]
