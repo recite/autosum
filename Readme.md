@@ -98,10 +98,22 @@ The regular expression matches a sentence (max 100 chars) following by author na
 
 #### Example from Social Science
 
-* [Overview](social_science_citations.md)
-* [Sample data](testdat/)
-* [Summary](testout/iyengar_et_al.csv)
-* Miscitations    
+* What to search for?: [Citation Search](social_science_citations.md)
+  * **Example with Google Scholar**  
+    Download 500 articles from Google Scholar:
+    ```
+    python scholar.py -v -d pdfs -o iyengar-output.csv -n 500 -a "S Iyengar" "Is anyone responsible?: How television frames political issues."
+    ```
+
+* **Searching in the Test Data**
+  * [Sample input data](testdat/)
+  * To filter only citation using the regular expression "Iyengar.{3,30}2012":
+    ```
+    python autosumpdf.py -v -i testdata.csv -o search-testdata-new.csv "Iyengar.{3,30}2012"
+    ```
+  * [Ouput](testout/iyengar_et_al.csv)
+
+* **Miscitations**    
   Social scientists hold that few truths are self-evident. But some truths become obvious to all social scientists after some years of experience, including: a) [Peer review is a mess](http://gbytes.gsood.com/2015/07/24/reviewing-the-peer-review-with-reviews-as-data/), b) Faculty hiring is idiosyncratic, and c) Research is often miscited. Here we quantify the last portion.  
 
 #### License
