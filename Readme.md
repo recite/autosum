@@ -2,6 +2,8 @@
 
 The tool exploits the labor already expended by scholars in summarizing articles. It scrapes words next to citations across all openly available research citing a publication, and collates the output. The result is a very useful summary and data that are in a format that allows easy discovery of potential miscitations. 
 
+--------------------
+
 #### Table of Contents
 
 * [Get the Data](#get-the-data)  
@@ -52,12 +54,13 @@ optional arguments:
   --version             show program's version number and exit
 ```
 
-**Example**
-
+**Example**  
 ```
 python scholar.py -v -d pdfs -o output.csv -n 100 -a "A Einstein" \
 "Can quantum-mechanical description of physical reality be considered complete?"
 ```
+
+-----------------------
 
 #### Parse the Data 
 
@@ -84,13 +87,14 @@ optional arguments:
   --version             show program's version number and exit
 ```
 
-**Example**
-
+**Example**  
 ```
 python searchpdf.py -v -i output.csv -o search-output.csv "\.\s(.{5,100}[\[\(]?Einstein.{2,30}\d+[\]\)])"
 ```
 
 The regular expression matches a sentence (max 100 chars) following by author name "Einstein", any words (max 30 chars) and number with close bracket at the end.
+
+-----------------------
 
 #### Example from Social Science
 
