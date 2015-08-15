@@ -4,18 +4,18 @@ The tool exploits the labor already expended by scholars in summarizing articles
 
 #### Table of Contents
 
-* [Get the Data](scripts/scholar.py)
+* [Get the Data](#get-the-data)
   Scrapes all openly accessible research citing a particular publication using links provided by [Google Scholar](https://scholar.google.com).
-  **Note** Google monitors scraping on Google scholar. 
+  **Note:** Google monitors scraping on Google scholar. 
 
-* [Parse the Data](scripts/parse.py)
+* [Parse the Data](#parse-the-data)
   Iterates through a directory with all the articles citing a particular research article, and using regular expressions, picks up sentences near a citation.
 
-* Sample Results
-  * [Summary](res/summary.csv)
-  * [Miscitation](res/results.csv)
-
+* [Example from Social Science](#example-from-social-science)
+ 
 ### Get the Data
+
+[Scholar.py](scripts/scholar.py)  
 
 1. Input: URL to Google Scholar Page of an article.
 2. What the script does:
@@ -56,7 +56,11 @@ python scholar.py -v -d pdfs -o output.csv -n 100 -a "A Einstein" \
 "Can quantum-mechanical description of physical reality be considered complete?"
 ```
 
-### Parse Data 
+[Sample output](testout/einstein_search_200.csv)
+
+### Parse the Data 
+
+[Parse.py](scripts/parse.py)
 
 1. Iterates through the pdfs using the csv generated above. 
 2. Based on regex, gets the text and puts it in the same csv. If multiple regex are matched, everything is concatenated with a line space.
@@ -86,10 +90,18 @@ python searchpdf.py -v -i output.csv -o search-output.csv "\.\s(.{5,100}[\[\(]?E
 
 The regular expression matches a sentence (max 100 chars) following by author name "Einstein", any words (max 30 chars) and number with close bracket at the end.
 
-#### Some Results from Social Science
+[Sample output](testout/einstein_cites_100.csv)
 
-#### Miscitations
+#### Example from Social Science
+
+* [Overview](social_science_citations.md)
+* [Sample data](testdat/)
+* [Summary](testout/iyengar_et_al.csv)
+
+##### Miscitations
+
 Social scientists hold that few truths are self-evident. But some truths become obvious to all social scientists after some years of experience, including: a) [Peer review is a mess](http://gbytes.gsood.com/2015/07/24/reviewing-the-peer-review-with-reviews-as-data/), b) Faculty hiring is idiosyncratic, and c) Research is often miscited. Here we quantify the last portion.  
+
 
 #### License
 
