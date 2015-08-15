@@ -39,8 +39,6 @@ Temporary Items
 .apdisk
 
 # Personal directories with notes etc.
-notes/
-testout/
 scripts/autosumpdf.py
 scripts/searchpdf.py
 scripts/scholar.py
