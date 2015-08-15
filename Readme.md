@@ -4,11 +4,11 @@ The tool exploits the labor already expended by scholars in summarizing articles
 
 #### Table of Contents
 
-* [Get the Data](#get-the-data)
-  Scrapes all openly accessible research citing a particular publication using links provided by [Google Scholar](https://scholar.google.com).
+* [Get the Data](#get-the-data)  
+  Scrapes all openly accessible research citing a particular publication using links provided by [Google Scholar](https://scholar.google.com).  
   **Note:** Google monitors scraping on Google scholar. 
 
-* [Parse the Data](#parse-the-data)
+* [Parse the Data](#parse-the-data)  
   Iterates through a directory with all the articles citing a particular research article, and using regular expressions, picks up sentences near a citation.
 
 * [Example from Social Science](#example-from-social-science)
