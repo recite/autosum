@@ -98,7 +98,7 @@ The regular expression matches a sentence (max 100 chars) following by author na
 
 #### Example from Social Science
 
-* What to search for?: [Citation Search](social_science_citations.md)
+* [What to search for?](social_science_citations.md)
   * **Example with Google Scholar**  
     Download 500 articles from Google Scholar:
     ```
@@ -107,7 +107,7 @@ The regular expression matches a sentence (max 100 chars) following by author na
 
 * **Searching in the Test Data**
   * [Sample input data](testdat/)
-  * To filter only citation using the regular expression "Iyengar.{3,30}2012":
+  * Use [autosumpdf.py](autosumpdf.py) to filter citations to Iyengar et al. 2012 using the regular expression "Iyengar.{3,30}2012":
     ```
     python autosumpdf.py -v -i testdata.csv -o search-testdata-new.csv "Iyengar.{3,30}2012"
     ```
