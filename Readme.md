@@ -5,7 +5,7 @@ The tool exploits the labor already expended by scholars in summarizing articles
 #### Table of Contents
 
 * [Get the Data](#get-the-data)  
-  Scrapes all openly accessible research citing a particular publication using links provided by [Google Scholar](https://scholar.google.com).  
+  Scrapes all openly accessible research citing a particular publication using links provided by [Google Scholar](https://scholar.google.com).
   **Note:** Google monitors scraping on Google scholar. 
 
 * [Parse the Data](#parse-the-data)  
@@ -17,13 +17,14 @@ The tool exploits the labor already expended by scholars in summarizing articles
 
 #### Get the Data
 
-[Scholar.py](scripts/scholar.py)  
+To search for openly accessible pdfs citing the original research article on Google Scholar, use [Scholar.py](scripts/scholar.py). The script  
 
 1. Input: URL to Google Scholar Page of an article.
 2. What the script does:
    * Goes to 'Cited By..'
    * Downloads a user specified number of publicly available papers (pdfs only for now) that cite the paper to a user specified directory. 
    * Creates a csv that tracks basic characteristics of each of the downloaded paper -- title, url, author names, journal etc. It also dumps relative path to downloaded file.
+3. [Sample output](testout/einstein_search_200.csv)
 
 ##### Usage
 
@@ -51,21 +52,20 @@ optional arguments:
   --version             show program's version number and exit
 ```
 
-#### Example
+**Example**
 
 ```
 python scholar.py -v -d pdfs -o output.csv -n 100 -a "A Einstein" \
 "Can quantum-mechanical description of physical reality be considered complete?"
 ```
 
-[Sample output](testout/einstein_search_200.csv)
+#### Parse the Data 
 
-### Parse the Data 
+To scrape the text next to the relevant citations within the pdfs, use [searchpdf.py](scripts/searchpdf.py):
 
-[Parse.py](scripts/parse.py)
-
-1. Iterates through the pdfs using the csv generated above. 
+1. The script iterates through the pdfs using the csv generated above. 
 2. Based on regex, gets the text and puts it in the same csv. If multiple regex are matched, everything is concatenated with a line space.
+3. [Sample output](testout/einstein_cites_100.csv)
 
 ```
 usage: searchpdf.py [-h] [-i INPUT] [-o OUTPUT] [-v] [--version]
@@ -84,7 +84,7 @@ optional arguments:
   --version             show program's version number and exit
 ```
 
-#### Example
+**Example**
 
 ```
 python searchpdf.py -v -i output.csv -o search-output.csv "\.\s(.{5,100}[\[\(]?Einstein.{2,30}\d+[\]\)])"
@@ -92,18 +92,13 @@ python searchpdf.py -v -i output.csv -o search-output.csv "\.\s(.{5,100}[\[\(]?E
 
 The regular expression matches a sentence (max 100 chars) following by author name "Einstein", any words (max 30 chars) and number with close bracket at the end.
 
-[Sample output](testout/einstein_cites_100.csv)
-
 #### Example from Social Science
 
 * [Overview](social_science_citations.md)
 * [Sample data](testdat/)
 * [Summary](testout/iyengar_et_al.csv)
-
-##### Miscitations
-
-Social scientists hold that few truths are self-evident. But some truths become obvious to all social scientists after some years of experience, including: a) [Peer review is a mess](http://gbytes.gsood.com/2015/07/24/reviewing-the-peer-review-with-reviews-as-data/), b) Faculty hiring is idiosyncratic, and c) Research is often miscited. Here we quantify the last portion.  
-
+* Miscitations    
+  Social scientists hold that few truths are self-evident. But some truths become obvious to all social scientists after some years of experience, including: a) [Peer review is a mess](http://gbytes.gsood.com/2015/07/24/reviewing-the-peer-review-with-reviews-as-data/), b) Faculty hiring is idiosyncratic, and c) Research is often miscited. Here we quantify the last portion.  
 
 #### License
 
