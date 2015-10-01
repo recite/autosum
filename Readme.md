@@ -2,9 +2,9 @@
 
 The tool exploits the labor already expended by scholars in summarizing articles. It scrapes words next to citations across all openly available research citing a publication, and collates the output. The result is a very useful summary and data that are in a format that allows easy discovery of potential miscitations. 
 
---------------------
-
 [CLICK HERE to suggest an edit to this page!](https://github.com/soodoku/autosum/edit/master/Readme.md)
+
+--------------------
 
 #### Table of Contents
 
