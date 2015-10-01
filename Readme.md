@@ -4,6 +4,8 @@ The tool exploits the labor already expended by scholars in summarizing articles
 
 --------------------
 
+[CLICK HERE to suggest an edit to this page!](https://github.com/soodoku/autosum/edit/master/Readme.md)
+
 #### Table of Contents
 
 * [Get the Data](#get-the-data)  
