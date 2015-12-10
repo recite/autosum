@@ -90,7 +90,7 @@ def search_regex(text, exp):
     # join multiple lines
     lines = text.split('\n')
     text = ' '.join(lines)
-    logging.info("Search...'%s'" % exp)
+    logging.info("Search...'{0!s}'".format(exp))
     regex = re.compile(exp, flags=(re.I))
     founds = []
     for m in regex.finditer(text):
@@ -116,13 +116,13 @@ if __name__ == "__main__":
             i += 1
             pdf_path = r['pdf_path']
             try:
-                txtfile = os.path.join(TMP_DIR, "%d.txt" % i)
+                txtfile = os.path.join(TMP_DIR, "{0:d}.txt".format(i))
                 if USE_TMP and os.path.exists(txtfile):
-                    logging.info("Use temporary...'%s'" % txtfile)
+                    logging.info("Use temporary...'{0!s}'".format(txtfile))
                     with open(txtfile, 'rb') as f:
                         text = f.read()
                 else:
-                    logging.info("Extract text...'%s'" % pdf_path)
+                    logging.info("Extract text...'{0!s}'".format(pdf_path))
                     text = convert_pdf_to_txt(pdf_path)
                     with open(txtfile, 'wb') as f:
                         f.write(text)
@@ -137,7 +137,7 @@ if __name__ == "__main__":
                 pass
             output.append(r)
 
-    logging.info("Save output to file...'%s'" % args.output)
+    logging.info("Save output to file...'{0!s}'".format(args.output))
     with open(args.output, 'wb') as f:
         writer = csv.DictWriter(f, fieldnames=['url', 'title', 'authors',
                                 'summary', 'cited_by', 'pdf_url',

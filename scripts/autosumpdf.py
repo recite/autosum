@@ -145,7 +145,7 @@ def search_citation(text, exp):
     text = ' '.join(lines)
     text = ' '.join(text.split())
     text = ftfy.fix_text(text.decode())
-    logging.info("Search...'%s'" % exp)
+    logging.info("Search...'{0!s}'".format(exp))
     sentences, st_index = split_sentences(text)
     regex = citation_regex()
     founds = set()
@@ -170,10 +170,10 @@ if __name__ == "__main__":
     output = []
 
     if not os.path.exists(args.txt_dir):
-        logging.info("Create text files directory... (%s)" % args.txt_dir)
+        logging.info("Create text files directory... ({0!s})".format(args.txt_dir))
         os.makedirs(args.txt_dir)
     else:
-        logging.info("Current text files directory... (%s)" % args.txt_dir)
+        logging.info("Current text files directory... ({0!s})".format(args.txt_dir))
 
     with open(args.input, 'rb') as f:
         reader = csv.DictReader(f)
@@ -182,13 +182,13 @@ if __name__ == "__main__":
             i += 1
             pdf_path = r['pdf_path']
             try:
-                txtfile = os.path.join(args.txt_dir, "%d.txt" % i)
+                txtfile = os.path.join(args.txt_dir, "{0:d}.txt".format(i))
                 if not args.force and os.path.exists(txtfile):
-                    logging.info("Use exists text file...'%s'" % txtfile)
+                    logging.info("Use exists text file...'{0!s}'".format(txtfile))
                     with open(txtfile, 'rb') as f:
                         text = f.read()
                 else:
-                    logging.info("Extract text from PDF...'%s'" % pdf_path)
+                    logging.info("Extract text from PDF...'{0!s}'".format(pdf_path))
                     text = convert_pdf_to_txt(pdf_path)
                     with open(txtfile, 'wb') as f:
                         f.write(text)
@@ -196,7 +196,7 @@ if __name__ == "__main__":
                 for e in args.regex:
                     results = search_citation(text, e)
                     founds.update(results)
-                    logging.info("Regex: '%s', Found: %d" % (e, len(results)))
+                    logging.info("Regex: '{0!s}', Found: {1:d}".format(e, len(results)))
                 r['founds'] = '\n'.join(founds)
                 r['status'] = 'OK'
             except Exception as e:
@@ -205,7 +205,7 @@ if __name__ == "__main__":
                 pass
             output.append(r)
 
-    logging.info("Save output to file...'%s'" % args.output)
+    logging.info("Save output to file...'{0!s}'".format(args.output))
     with open(args.output, 'wb') as f:
         writer = csv.DictWriter(f, fieldnames=['url', 'title', 'authors',
                                 'summary', 'cited_by', 'pdf_url',

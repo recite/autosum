@@ -165,7 +165,7 @@ class ScholarWebClient(object):
         return os.path.join(TMP_DIR, path)
 
     def query(self, query='', author=''):
-        logging.info("Query...'%s'" % query)
+        logging.info("Query...'{0!s}'".format(query))
         if USE_TMP and os.path.exists(self.tmp_path('query.html')):
             logging.info("Use temporary file...")
             with open(self.tmp_path('query.html'), 'rb') as f:
@@ -178,7 +178,7 @@ class ScholarWebClient(object):
             'as_oq': '',
             'as_eq': '',
             'as_occt': 'any',
-            'as_sauthors': '"%s"' % author,
+            'as_sauthors': '"{0!s}"'.format(author),
             'as_publication': '',
             'as_ylo': '',
             'as_yhi': '',
@@ -187,7 +187,7 @@ class ScholarWebClient(object):
             'as_sdt': '0,5'
         }
         url += '/scholar?' + urlencode(params)
-        logging.debug("Query URL: '%s'" % url)
+        logging.debug("Query URL: '{0!s}'".format(url))
         text = ''
         try:
             response = self.opener.open(url)
@@ -201,12 +201,12 @@ class ScholarWebClient(object):
 
     def download(self, url, path):
         # Download the file from `url` and save it locally under `path`:
-        logging.info("Download URL: '%s'" % url)
+        logging.info("Download URL: '{0!s}'".format(url))
         try:
             response = self.opener.open(url, timeout=30)
             data = response.read()
             with open(path, 'wb') as out_file:
-                logging.info("Save to: '%s" % path)
+                logging.info("Save to: '{0!s}".format(path))
                 out_file.write(data)
         except Exception as e:
             logging.error(e)
@@ -232,21 +232,21 @@ class ScholarWebClient(object):
 
     def browse(self, url='', page=1):
         logging.info("Browse...")
-        if USE_TMP and os.path.exists(self.tmp_path('page-%d.html' % page)):
+        if USE_TMP and os.path.exists(self.tmp_path('page-{0:d}.html'.format(page))):
             logging.info("Use temporary file...")
-            with open(self.tmp_path('page-%d.html' % page), 'rb') as f:
+            with open(self.tmp_path('page-{0:d}.html'.format(page)), 'rb') as f:
                 text = f.read()
             return text
         url = GOOGLE_SCHOLAR_URL + url
         if page > 1:
-            url += ('&start=%d' % ((page - 1)*10))
-        logging.debug("Browse URL: '%s'" % url)
+            url += ('&start={0:d}'.format(((page - 1)*10)))
+        logging.debug("Browse URL: '{0!s}'".format(url))
         text = ''
         try:
             response = self.opener.open(url)
             text = response.read()
             if self.args.verbose:
-                with open(self.tmp_path('page-%d.html' % page), 'wb') as f:
+                with open(self.tmp_path('page-{0:d}.html'.format(page)), 'wb') as f:
                     f.write(text)
         except Exception as e:
             logging.error(e)
@@ -259,7 +259,7 @@ class ScholarWebClient(object):
         cites = []
         for r in rows:
             i += 1
-            logging.info("No: %d" % i)
+            logging.info("No: {0:d}".format(i))
             title = r.find('h3', class_='gs_rt')
             if title:
                 if title.a:
@@ -320,7 +320,7 @@ def test_pdf():
         try:
             pdf = pdfquery.PDFQuery(f)
             pdf.load()
-            pdf.tree.write("%s.xml" % bn, pretty_print=True, encoding="utf-8")
+            pdf.tree.write("{0!s}.xml".format(bn), pretty_print=True, encoding="utf-8")
         except Exception as e:
             print e
             print "ERROR"
@@ -360,7 +360,7 @@ if __name__ == "__main__":
     else:
         setup_logger(logging.INFO)
     args.keywords = ' '.join(args.keyword)
-    logging.debug("keywords = '%s'" % args.keywords)
+    logging.debug("keywords = '{0!s}'".format(args.keywords))
     session = ScholarWebClient(args)
     signed_in = session.start()
     if not signed_in:
@@ -384,14 +384,14 @@ if __name__ == "__main__":
         logging.error("Google detected, we're a robot.")
 
     url, count = session.get_cited_by_url(html)
-    logging.info("Total cited by %d" % count)
+    logging.info("Total cited by {0:d}".format(count))
     n_cites = min(args.n_cites, count)
     all_cites = []
     page = 0
     n_pages = (n_cites - 1)/10 + 1
     while page < n_pages:
         page += 1
-        logging.debug("Page = %d" % page)
+        logging.debug("Page = {0:d}".format(page))
         html = session.browse(url, page)
         if session.is_robot_detected(html):
             logging.error("Google detected, we're a robot.")
@@ -407,12 +407,12 @@ if __name__ == "__main__":
     for n, c in enumerate(all_cites):
         pdf_url = c['pdf_url']
         if pdf_url != '':
-            path = os.path.join(args.dir, '%d.pdf' % (n + 1))
+            path = os.path.join(args.dir, '{0:d}.pdf'.format((n + 1)))
             c['pdf_path'] = path
             if os.path.exists(path):
-                logging.info("Skip, '%s' exists" % path)
+                logging.info("Skip, '{0!s}' exists".format(path))
             else:
-                logging.info("Download...'%s'" % path)
+                logging.info("Download...'{0!s}'".format(path))
                 # Download PDF files
                 session.download(pdf_url, path)
 
