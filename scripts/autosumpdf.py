@@ -8,18 +8,16 @@ import logging
 import csv
 import re
 
+from pdfminer.pdfparser import PDFParser, PDFDocument
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
-from pdfminer.pdfpage import PDFPage
-from cStringIO import StringIO
+from io import StringIO
 
 from bisect import bisect
 
 import ftfy
 
-reload(sys)
-sys.setdefaultencoding("utf-8")
 
 __version__ = '0.0.1'
 
@@ -67,23 +65,26 @@ def get_args():
 
 
 def convert_pdf_to_txt(path):
+
     rsrcmgr = PDFResourceManager()
     retstr = StringIO()
-    codec = 'utf-8'
     laparams = LAParams()
-    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
-    fp = file(path, 'rb')
+
+    device = TextConverter(rsrcmgr, retstr, laparams=laparams)
+
+    fp = open(path, 'rb')
+    parser = PDFParser(fp)
+
+    doc = PDFDocument(caching=True)
+    parser.set_document(doc)
+    doc.set_parser(parser)
+    doc.initialize('')
+
     interpreter = PDFPageInterpreter(rsrcmgr, device)
-    password = ""
-    maxpages = 0
-    caching = True
-    pagenos = set()
+    # Process each page contained in the document.
 
-    for page in PDFPage.get_pages(fp, pagenos,
-                                  maxpages=maxpages, password=password,
-                                  caching=caching, check_extractable=True):
+    for page in doc.get_pages():
         interpreter.process_page(page)
-
     text = retstr.getvalue()
 
     fp.close()
@@ -141,10 +142,11 @@ def citation_regex():
 
 
 def search_citation(text, exp):
+    text = text.decode()
     lines = text.split('\n')
     text = ' '.join(lines)
     text = ' '.join(text.split())
-    text = ftfy.fix_text(text.decode())
+    text = ftfy.fix_text(text)
     logging.info("Search...'{0!s}'".format(exp))
     sentences, st_index = split_sentences(text)
     regex = citation_regex()
@@ -175,7 +177,7 @@ if __name__ == "__main__":
     else:
         logging.info("Current text files directory... ({0!s})".format(args.txt_dir))
 
-    with open(args.input, 'rb') as f:
+    with open(args.input, 'r') as f:
         reader = csv.DictReader(f)
         i = 0
         for r in reader:
@@ -191,7 +193,7 @@ if __name__ == "__main__":
                     logging.info("Extract text from PDF...'{0!s}'".format(pdf_path))
                     text = convert_pdf_to_txt(pdf_path)
                     with open(txtfile, 'wb') as f:
-                        f.write(text)
+                        f.write(text.encode("utf-8"))
                 founds = set()
                 for e in args.regex:
                     results = search_citation(text, e)
@@ -200,13 +202,13 @@ if __name__ == "__main__":
                 r['founds'] = '\n'.join(founds)
                 r['status'] = 'OK'
             except Exception as e:
-                logging.error(e)
+                logging.error(e);
                 r['status'] = 'ERROR'
                 pass
             output.append(r)
 
     logging.info("Save output to file...'{0!s}'".format(args.output))
-    with open(args.output, 'wb') as f:
+    with open(args.output, 'w') as f:
         writer = csv.DictWriter(f, fieldnames=['url', 'title', 'authors',
                                 'summary', 'cited_by', 'pdf_url',
                                 'pdf_path', 'founds', 'status'])

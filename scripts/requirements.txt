@@ -1,3 +1,4 @@
-BeautifulSoup4
+beautifulsoup4
 pdfquery
 ftfy
+pdfminer3k
