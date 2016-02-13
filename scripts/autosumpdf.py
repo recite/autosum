@@ -71,23 +71,21 @@ def convert_pdf_to_txt(path):
     laparams = LAParams()
 
     device = TextConverter(rsrcmgr, retstr, laparams=laparams)
+    with open(path, 'rb') as fp:
+        parser = PDFParser(fp)
 
-    fp = open(path, 'rb')
-    parser = PDFParser(fp)
+        doc = PDFDocument(caching=True)
+        parser.set_document(doc)
+        doc.set_parser(parser)
+        doc.initialize('')
 
-    doc = PDFDocument(caching=True)
-    parser.set_document(doc)
-    doc.set_parser(parser)
-    doc.initialize('')
+        interpreter = PDFPageInterpreter(rsrcmgr, device)
+        # Process each page contained in the document.
 
-    interpreter = PDFPageInterpreter(rsrcmgr, device)
-    # Process each page contained in the document.
+        for page in doc.get_pages():
+            interpreter.process_page(page)
+        text = retstr.getvalue()
 
-    for page in doc.get_pages():
-        interpreter.process_page(page)
-    text = retstr.getvalue()
-
-    fp.close()
     device.close()
     retstr.close()
 

@@ -111,7 +111,7 @@ class ScholarWebClient(object):
                 logging.info("Already signed in")
                 return True
         except Exception as e:
-            logging.error(e);raise(e)
+            logging.error(e)
             return False
         return False
 
@@ -141,7 +141,7 @@ class ScholarWebClient(object):
                     else:
                         params[i['name']] = ""
         except Exception as e:
-            logging.error(e);raise(e)
+            logging.error(e)
             return False
 
         logging.info("Sending password...")
@@ -157,7 +157,7 @@ class ScholarWebClient(object):
                     f.write(text)
             return self.is_signed_in(text)
         except Exception as e:
-            logging.error(e);raise(e)
+            logging.error(e)
         return False
 
     def tmp_path(self, path):
@@ -195,7 +195,7 @@ class ScholarWebClient(object):
                 with open(self.tmp_path('query.html'), 'wb') as f:
                     f.write(text)
         except Exception as e:
-            logging.error(e);raise(e)
+            logging.error(e)
         return text
 
     def download(self, url, path):
@@ -208,7 +208,7 @@ class ScholarWebClient(object):
                 logging.info("Save to: '{0!s}".format(path))
                 out_file.write(data)
         except Exception as e:
-            logging.error(e);raise(e)
+            logging.error(e)
 
     def get_cited_by_url(self, html=''):
         soup = BeautifulSoup(html,"lxml")
@@ -248,7 +248,7 @@ class ScholarWebClient(object):
                 with open(self.tmp_path('page-{0:d}.html'.format(page)), 'wb') as f:
                     f.write(text)
         except Exception as e:
-            logging.error(e);raise(e)
+            logging.error(e)
         return text
 
     def get_cites(self, html=''):
