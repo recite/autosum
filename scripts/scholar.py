@@ -12,15 +12,11 @@ import re
 from getpass import getpass
 from glob import glob
 
-import urllib2
-import cookielib
-from urllib import urlencode
+import urllib
+import http.cookiejar
 
 from bs4 import BeautifulSoup
 import pdfquery
-
-reload(sys)
-sys.setdefaultencoding("utf-8")
 
 __version__ = '0.0.2'
 
@@ -61,19 +57,22 @@ class ScholarWebClient(object):
     def __init__(self, args):
         """ Start up... """
         self.args = args
-        self.cj = cookielib.MozillaCookieJar(COOKIES_FILENAME)
+        self.cj = http.cookiejar.MozillaCookieJar(COOKIES_FILENAME)
         if os.access(COOKIES_FILENAME, os.F_OK):
-            self.cj.load()
-        self.opener = urllib2.build_opener(
-            urllib2.HTTPRedirectHandler(),
-            urllib2.HTTPHandler(debuglevel=0),
-            urllib2.HTTPSHandler(debuglevel=0),
-            urllib2.HTTPCookieProcessor(self.cj)
+            self.cj.load(os.getcwd()+"/"+COOKIES_FILENAME)#os.path.join(os.environ["HOME"], ".netscape/cookies.txt")
+        self.opener = urllib.request.build_opener(
+            urllib.request.HTTPRedirectHandler(),
+            urllib.request.HTTPHandler(debuglevel=0),
+            urllib.request.HTTPSHandler(debuglevel=0),
+            urllib.request.HTTPCookieProcessor(self.cj)
         )
         self.opener.addheaders = [
             ('User-Agent', ('Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.124 Safari/537.36')),
             ('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8')
-        ]
+            ]
+
+
+
         if not os.path.exists(TMP_DIR):
             os.makedirs(TMP_DIR)
 
@@ -82,7 +81,7 @@ class ScholarWebClient(object):
         self.cj.save()
 
     def is_signed_in(self, html=""):
-        return (html.find('SignOutOptions') != -1)
+        return (html.find(b'SignOutOptions') != -1)
 
     def start(self):
         """
@@ -97,7 +96,7 @@ class ScholarWebClient(object):
                     f.write(text)
             if not self.is_signed_in(text):
                 logging.info("Not signed in yet")
-                soup = BeautifulSoup(text)
+                soup = BeautifulSoup(text,"lxml")
                 form = soup.find_all('form', {'id': 'gaia_loginform'})
                 self.auth_url = form[0]['action']
                 params = {}
@@ -126,12 +125,12 @@ class ScholarWebClient(object):
         if 'Email' in params:
             params['Email'] = self.args.user
         else:
-            logging.warn("Invalid sign in page")
+            logging.warning("Invalid sign in page")
             return False
         try:
-            response = self.opener.open(self.auth_url, urlencode(params))
+            response = self.opener.open(self.auth_url, urllib.parse.urlencode(params).encode())
             text = response.read()
-            soup = BeautifulSoup(text)
+            soup = BeautifulSoup(text,"lxml")
             form = soup.find_all('form', {'id': 'gaia_loginform'})
             self.auth_url = form[0]['action']
             params = {}
@@ -151,7 +150,7 @@ class ScholarWebClient(object):
         else:
             return False
         try:
-            response = self.opener.open(self.auth_url, urlencode(params))
+            response = self.opener.open(self.auth_url, urllib.parse.urlencode(params).encode())
             text = response.read()
             if self.args.verbose:
                 with open(self.tmp_path('login.html'), 'wb') as f:
@@ -186,7 +185,7 @@ class ScholarWebClient(object):
             'hl': 'en',
             'as_sdt': '0,5'
         }
-        url += '/scholar?' + urlencode(params)
+        url += '/scholar?' + urllib.parse.urlencode(params)
         logging.debug("Query URL: '{0!s}'".format(url))
         text = ''
         try:
@@ -212,7 +211,7 @@ class ScholarWebClient(object):
             logging.error(e)
 
     def get_cited_by_url(self, html=''):
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html,"lxml")
         url = ''
         rows = soup.find_all('div', {'class': 'gs_ri'})
         count = 0
@@ -254,7 +253,7 @@ class ScholarWebClient(object):
 
     def get_cites(self, html=''):
         i = 0
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html,"lxml")
         rows = soup.find_all('div', {'class': 'gs_r'})
         cites = []
         for r in rows:
@@ -310,20 +309,20 @@ class ScholarWebClient(object):
         return cites
 
     def is_robot_detected(self, html=''):
-        return (html.find('Please show you&#39;re not a robot') != -1)
+        return (html.find(b'Please show you&#39;re not a robot') != -1)
 
 
 def test_pdf():
     for f in glob('*.pdf'):
-        print f
+        print(f)
         bn = os.path.basename(f)
         try:
             pdf = pdfquery.PDFQuery(f)
             pdf.load()
             pdf.tree.write("{0!s}.xml".format(bn), pretty_print=True, encoding="utf-8")
         except Exception as e:
-            print e
-            print "ERROR"
+            print(e)
+            print("ERROR")
 
 
 def get_args():
@@ -365,18 +364,18 @@ if __name__ == "__main__":
     signed_in = session.start()
     if not signed_in:
         if args.user == '':
-            args.user = raw_input('Enter Google account (E-mail): ')
+            args.user = input('Enter Google account (E-mail): ')
         if args.user != '' and args.password == '':
             args.password = getpass('Enter Google password: ')
         if args.user != '' and args.password != '':
             if session.login():
                 logging.info("Signed in")
-                # Save cookies for furture use.
+                # Save cookies for future use.
                 session.save()
             else:
-                logging.warn("Cannot signed in continue in Guest mode")
+                logging.warning("Cannot signed in continue in Guest mode")
         else:
-            logging.warn("No Google E-mail or Password continue in Guest mode")
+            logging.warning("No Google E-mail or Password continue in Guest mode")
     if args.keywords == 'default':
         args.keywords = DEF_SEARCH_QUERY
     html = session.query(query=args.keywords, author=args.author)
@@ -416,7 +415,7 @@ if __name__ == "__main__":
                 # Download PDF files
                 session.download(pdf_url, path)
 
-    with open(args.output, 'wb') as f:
+    with open(args.output, 'w') as f:
         writer = csv.DictWriter(f, fieldnames=['url', 'title', 'authors',
                                 'summary', 'cited_by', 'pdf_url', 'pdf_path'])
         writer.writeheader()

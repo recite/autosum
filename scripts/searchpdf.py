@@ -8,14 +8,12 @@ import logging
 import csv
 import re
 
+from pdfminer.pdfparser import PDFParser, PDFDocument
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
-from pdfminer.pdfpage import PDFPage
-from cStringIO import StringIO
+from io import StringIO
 
-reload(sys)
-sys.setdefaultencoding("utf-8")
 
 __version__ = '0.0.1'
 
@@ -62,24 +60,25 @@ def get_args():
 def convert_pdf_to_txt(path):
     rsrcmgr = PDFResourceManager()
     retstr = StringIO()
-    codec = 'utf-8'
     laparams = LAParams()
-    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
-    fp = file(path, 'rb')
-    interpreter = PDFPageInterpreter(rsrcmgr, device)
-    password = ""
-    maxpages = 0
-    caching = True
-    pagenos = set()
+    device = TextConverter(rsrcmgr, retstr, laparams=laparams)
+    print(path)
+    with  open(path, 'rb') as fp:
+        parser = PDFParser(fp)
 
-    for page in PDFPage.get_pages(fp, pagenos,
-                                  maxpages=maxpages, password=password,
-                                  caching=caching, check_extractable=True):
-        interpreter.process_page(page)
+        doc = PDFDocument(caching=True)
+        parser.set_document(doc)
+        doc.set_parser(parser)
+        doc.initialize('')
 
-    text = retstr.getvalue()
+        interpreter = PDFPageInterpreter(rsrcmgr, device)
+        # Process each page contained in the document.
 
-    fp.close()
+        for page in doc.get_pages():
+            interpreter.process_page(page)
+
+        text = retstr.getvalue()
+
     device.close()
     retstr.close()
 
@@ -109,7 +108,7 @@ if __name__ == "__main__":
     else:
         setup_logger(logging.INFO)
     output = []
-    with open(args.input, 'rb') as f:
+    with open(args.input, 'r') as f:
         reader = csv.DictReader(f)
         i = 0
         for r in reader:
@@ -125,7 +124,7 @@ if __name__ == "__main__":
                     logging.info("Extract text...'{0!s}'".format(pdf_path))
                     text = convert_pdf_to_txt(pdf_path)
                     with open(txtfile, 'wb') as f:
-                        f.write(text)
+                        f.write(text.encode("utf-8"))
                 founds = []
                 for e in args.regex:
                     founds += search_regex(text, e)
@@ -138,7 +137,7 @@ if __name__ == "__main__":
             output.append(r)
 
     logging.info("Save output to file...'{0!s}'".format(args.output))
-    with open(args.output, 'wb') as f:
+    with open(args.output, 'w') as f:
         writer = csv.DictWriter(f, fieldnames=['url', 'title', 'authors',
                                 'summary', 'cited_by', 'pdf_url',
                                 'pdf_path', 'founds', 'status'])
