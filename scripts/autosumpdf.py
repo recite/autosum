@@ -8,11 +8,11 @@ import logging
 import csv
 import re
 
-from pdfminer.pdfparser import PDFParser, PDFDocument
+from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
-from io import StringIO
+from io import BytesIO
 
 from bisect import bisect
 
@@ -27,6 +27,7 @@ LOG_FILE = 'autosumpdf.log'
 DEF_IN_CSV = 'output.csv'
 DEF_OUT_CSV = 'autosum-output.csv'
 DEF_TXT_DIR = 'txt'
+
 
 def setup_logger(level=logging.DEBUG):
     """ Set up logging
@@ -65,26 +66,23 @@ def get_args():
 
 
 def convert_pdf_to_txt(path):
-
     rsrcmgr = PDFResourceManager()
-    retstr = StringIO()
+    retstr = BytesIO()
+    codec = 'utf-8'
     laparams = LAParams()
-
-    device = TextConverter(rsrcmgr, retstr, laparams=laparams)
+    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
+    interpreter = PDFPageInterpreter(rsrcmgr, device)
+    password = ""
+    maxpages = 0
+    caching = True
+    pagenos = set()
     with open(path, 'rb') as fp:
-        parser = PDFParser(fp)
-
-        doc = PDFDocument(caching=True)
-        parser.set_document(doc)
-        doc.set_parser(parser)
-        doc.initialize('')
-
-        interpreter = PDFPageInterpreter(rsrcmgr, device)
-        # Process each page contained in the document.
-
-        for page in doc.get_pages():
+        for page in PDFPage.get_pages(fp, pagenos,
+                                      maxpages=maxpages, password=password,
+                                      caching=caching, check_extractable=True):
             interpreter.process_page(page)
-        text = retstr.getvalue()
+
+    text = retstr.getvalue()
 
     device.close()
     retstr.close()
@@ -140,7 +138,7 @@ def citation_regex():
 
 
 def search_citation(text, exp):
-    text = text.decode()
+    text = text.decode('utf-8')
     lines = text.split('\n')
     text = ' '.join(lines)
     text = ' '.join(text.split())
@@ -191,7 +189,7 @@ if __name__ == "__main__":
                     logging.info("Extract text from PDF...'{0!s}'".format(pdf_path))
                     text = convert_pdf_to_txt(pdf_path)
                     with open(txtfile, 'wb') as f:
-                        f.write(text.encode("utf-8"))
+                        f.write(text)
                 founds = set()
                 for e in args.regex:
                     results = search_citation(text, e)
@@ -200,7 +198,7 @@ if __name__ == "__main__":
                 r['founds'] = '\n'.join(founds)
                 r['status'] = 'OK'
             except Exception as e:
-                logging.error(e);
+                logging.error(e)
                 r['status'] = 'ERROR'
                 pass
             output.append(r)
