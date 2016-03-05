@@ -8,11 +8,11 @@ import logging
 import csv
 import re
 
-from pdfminer.pdfparser import PDFParser, PDFDocument
+from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
-from io import StringIO
+from io import BytesIO
 
 
 __version__ = '0.0.1'
@@ -24,6 +24,7 @@ LOG_FILE = 'searchpdf.log'
 
 DEF_IN_CSV = 'output.csv'
 DEF_OUT_CSV = 'search-output.csv'
+
 
 def setup_logger(level=logging.DEBUG):
     """ Set up logging
@@ -59,25 +60,22 @@ def get_args():
 
 def convert_pdf_to_txt(path):
     rsrcmgr = PDFResourceManager()
-    retstr = StringIO()
+    retstr = BytesIO()
+    codec = 'utf-8'
     laparams = LAParams()
-    device = TextConverter(rsrcmgr, retstr, laparams=laparams)
-    print(path)
-    with  open(path, 'rb') as fp:
-        parser = PDFParser(fp)
-
-        doc = PDFDocument(caching=True)
-        parser.set_document(doc)
-        doc.set_parser(parser)
-        doc.initialize('')
-
-        interpreter = PDFPageInterpreter(rsrcmgr, device)
-        # Process each page contained in the document.
-
-        for page in doc.get_pages():
+    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
+    interpreter = PDFPageInterpreter(rsrcmgr, device)
+    password = ""
+    maxpages = 0
+    caching = True
+    pagenos = set()
+    with open(path, 'rb') as fp:
+        for page in PDFPage.get_pages(fp, pagenos,
+                                      maxpages=maxpages, password=password,
+                                      caching=caching, check_extractable=True):
             interpreter.process_page(page)
 
-        text = retstr.getvalue()
+    text = retstr.getvalue()
 
     device.close()
     retstr.close()
@@ -87,7 +85,7 @@ def convert_pdf_to_txt(path):
 
 def search_regex(text, exp):
     # join multiple lines
-    lines = text.split('\n')
+    lines = text.decode('utf-8').split('\n')
     text = ' '.join(lines)
     logging.info("Search...'{0!s}'".format(exp))
     regex = re.compile(exp, flags=(re.I))
@@ -124,7 +122,7 @@ if __name__ == "__main__":
                     logging.info("Extract text...'{0!s}'".format(pdf_path))
                     text = convert_pdf_to_txt(pdf_path)
                     with open(txtfile, 'wb') as f:
-                        f.write(text.encode("utf-8"))
+                        f.write(text)
                 founds = []
                 for e in args.regex:
                     founds += search_regex(text, e)
