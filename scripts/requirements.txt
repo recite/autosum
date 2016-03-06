@@ -1,4 +1,6 @@
+future
 beautifulsoup4
 pdfquery
 ftfy
-pdfminer3k
+lxml
+pdfminer.six>=20160202

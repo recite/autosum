@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
+from builtins import input
+
 import os
 import time
 import argparse
@@ -12,7 +13,15 @@ import re
 from getpass import getpass
 from glob import glob
 
-import urllib
+try:
+    from urllib.parse import urlencode
+    from urllib.request import (build_opener, HTTPRedirectHandler, HTTPHandler,
+                                HTTPSHandler, HTTPCookieProcessor)
+except ImportError:
+    from urllib import urlencode
+    from urllib2 import (build_opener, HTTPRedirectHandler, HTTPHandler,
+                         HTTPSHandler, HTTPCookieProcessor)
+
 import http.cookiejar
 
 from bs4 import BeautifulSoup
@@ -35,6 +44,7 @@ DEF_PDF_DIR = 'pdfs'
 DEF_OUT_CSV = 'output.csv'
 
 COOKIES_FILENAME = ".cookies"
+
 
 def setup_logger(level=logging.DEBUG):
     """ Set up logging
@@ -59,19 +69,15 @@ class ScholarWebClient(object):
         self.args = args
         self.cj = http.cookiejar.MozillaCookieJar(COOKIES_FILENAME)
         if os.access(COOKIES_FILENAME, os.F_OK):
-            self.cj.load(os.getcwd()+"/"+COOKIES_FILENAME)#os.path.join(os.environ["HOME"], ".netscape/cookies.txt")
-        self.opener = urllib.request.build_opener(
-            urllib.request.HTTPRedirectHandler(),
-            urllib.request.HTTPHandler(debuglevel=0),
-            urllib.request.HTTPSHandler(debuglevel=0),
-            urllib.request.HTTPCookieProcessor(self.cj)
-        )
+            self.cj.load(os.getcwd() + "/" + COOKIES_FILENAME)
+        self.opener = build_opener(HTTPRedirectHandler(),
+                                   HTTPHandler(debuglevel=0),
+                                   HTTPSHandler(debuglevel=0),
+                                   HTTPCookieProcessor(self.cj))
         self.opener.addheaders = [
             ('User-Agent', ('Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.124 Safari/537.36')),
             ('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8')
             ]
-
-
 
         if not os.path.exists(TMP_DIR):
             os.makedirs(TMP_DIR)
@@ -96,14 +102,14 @@ class ScholarWebClient(object):
                     f.write(text)
             if not self.is_signed_in(text):
                 logging.info("Not signed in yet")
-                soup = BeautifulSoup(text,"lxml")
+                soup = BeautifulSoup(text, "lxml")
                 form = soup.find_all('form', {'id': 'gaia_loginform'})
                 self.auth_url = form[0]['action']
                 params = {}
                 for i in form[0].find_all('input'):
                     if 'name' in i.attrs:
                         if 'value' in i.attrs:
-                            params[i['name']] = i['value']
+                            params[i['name']] = i['value'].encode('utf-8')
                         else:
                             params[i['name']] = ""
                 self.auth_params = params
@@ -128,16 +134,16 @@ class ScholarWebClient(object):
             logging.warning("Invalid sign in page")
             return False
         try:
-            response = self.opener.open(self.auth_url, urllib.parse.urlencode(params).encode())
+            response = self.opener.open(self.auth_url, urlencode(params).encode())
             text = response.read()
-            soup = BeautifulSoup(text,"lxml")
+            soup = BeautifulSoup(text, "lxml")
             form = soup.find_all('form', {'id': 'gaia_loginform'})
             self.auth_url = form[0]['action']
             params = {}
             for i in form[0].find_all('input'):
                 if 'name' in i.attrs:
                     if 'value' in i.attrs:
-                        params[i['name']] = i['value']
+                        params[i['name']] = i['value'].encode('utf-8')
                     else:
                         params[i['name']] = ""
         except Exception as e:
@@ -150,7 +156,7 @@ class ScholarWebClient(object):
         else:
             return False
         try:
-            response = self.opener.open(self.auth_url, urllib.parse.urlencode(params).encode())
+            response = self.opener.open(self.auth_url, urlencode(params).encode())
             text = response.read()
             if self.args.verbose:
                 with open(self.tmp_path('login.html'), 'wb') as f:
@@ -185,7 +191,7 @@ class ScholarWebClient(object):
             'hl': 'en',
             'as_sdt': '0,5'
         }
-        url += '/scholar?' + urllib.parse.urlencode(params)
+        url += '/scholar?' + urlencode(params)
         logging.debug("Query URL: '{0!s}'".format(url))
         text = ''
         try:
@@ -211,7 +217,7 @@ class ScholarWebClient(object):
             logging.error(e)
 
     def get_cited_by_url(self, html=''):
-        soup = BeautifulSoup(html,"lxml")
+        soup = BeautifulSoup(html, "lxml")
         url = ''
         rows = soup.find_all('div', {'class': 'gs_ri'})
         count = 0
@@ -253,7 +259,7 @@ class ScholarWebClient(object):
 
     def get_cites(self, html=''):
         i = 0
-        soup = BeautifulSoup(html,"lxml")
+        soup = BeautifulSoup(html, "lxml")
         rows = soup.find_all('div', {'class': 'gs_r'})
         cites = []
         for r in rows:
@@ -265,17 +271,17 @@ class ScholarWebClient(object):
                     title_url = title.a['href']
                 else:
                     title_url = ''
-                title_text = title.text.encode()
+                title_text = title.text.encode('utf-8')
             else:
                 title_text = ''
             authors = r.find('div', class_='gs_a')
             if authors:
-                authors_text = authors.text.encode()
+                authors_text = authors.text.encode('utf-8')
             else:
                 authors_text = ''
             summary = r.find('div', class_='gs_rs')
             if summary:
-                summary_text = summary.text.encode()
+                summary_text = summary.text.encode('utf-8')
             else:
                 summary_text = ''
             pdf_url = ''
