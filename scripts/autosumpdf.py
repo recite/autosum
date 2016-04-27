@@ -13,9 +13,6 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from io import BytesIO
-
-from bisect import bisect
-
 import ftfy
 
 
@@ -52,18 +49,48 @@ def get_args():
     parser.add_argument('-o', '--output', action='store', dest='output',
                         default=DEF_OUT_CSV, help='CSV output filename')
     parser.add_argument('-t', '--text', action='store', dest='txt_dir',
-                        default=DEF_TXT_DIR, help='Extract to specific directory')
+                        default=DEF_TXT_DIR, help='extract to specific directory')
     parser.add_argument('-f', '--force', action='store_true', default=False,
-                        help='Force extract text file if exists')
+                        help='force extract text file if exists')
     parser.add_argument('-v', '--verbose', action='store_true', default=False)
+    parser.add_argument('-a1', '--author-1-lastname',action='store',help='1st author of citation',dest='author1',)
+    parser.add_argument('-a2', '--author-2-lastname',action='store',help='2nd author of citation',dest='author2')
+    parser.add_argument('-y', '--year',action='store',help='Year of publication',dest='year')
     parser.add_argument('--version', action='version',
                         version='%(prog)s ' + __version__)
-
-    parser.add_argument('regex', help="Regex to filter citation (Authors/Year)", nargs='+')
+    parser.add_argument('-r','--regex', action='store',help="specify custom regex to filter citations.", dest="regex")
 
     results = parser.parse_args()
+
+    if results.author1 is None and results.regex is None:
+        parser.error("You must specify at least an author (-a1), or a custom regexp (-r) to filter citations.")
+        exit(-1)
+
     return results
 
+
+def build_regexp_list(args):
+    '''
+    builds a list of regexps to be used for filtering citations using available
+    information like first, second author and year (command line arguments -a1,
+    -a2 and y) and /or the custom regexp (-r).
+    '''
+    exp_list = []
+
+    if args.author1 is not None:
+        if args.year is None:
+            year = ''
+            exp_list.append(args.author1 + "\set al\.")
+        else:
+            year = args.year
+            exp_list.append(args.author1 + "\s{0,1}(et al\.){0,1}\,{0,1}\s{0,1}" + args.year)
+        if args.author2 is not None:
+                exp_list.append(args.author1 + "(\,){0,1}\s{0,1}(and|&){0,1}\s" + args.author2 + "\,{0,1}\s{0,1}" + year)
+
+    if args.regex is not None: #custom regexp
+        exp_list.append(args.regex)
+
+    return exp_list
 
 def convert_pdf_to_txt(path):
     rsrcmgr = PDFResourceManager()
@@ -91,7 +118,7 @@ def convert_pdf_to_txt(path):
 
 
 def split_sentences(text):
-    """Returns split sentences list and index of splitting point
+    """Returns split sentences list
 
        Reference:
        http://stackoverflow.com/questions/8465335/a-regex-for-extracting-
@@ -116,51 +143,36 @@ def split_sentences(text):
         (?<!  et\ al\.  )
         (?<!  i\.e\.  )
         (?<!  U\.S\.  )
+        (?<!  p\.  )      # Don't end sentence on "p." (page)
         \s+               # Split on whitespace between sentences.
         """, re.IGNORECASE | re.VERBOSE)
     sentenceList = sentenceEnders.split(text)
-    st_index = [0]
-    for s in sentenceEnders.finditer(text):
-        st_index.append(s.start())
-    return sentenceList, st_index
-
-
-def citation_regex():
-    author = "(?:[A-Z][_0-9A-Za-z'`-]+)"
-    etal = "(?:et al.?)"
-    additional = "(?:,? (?:(?:and |& )?" + author + "|" + etal + "))"
-    year_num = "(?:19|20)[0-9][0-9]"
-    page_num = "(?:, p.? [0-9]+)?"  # Always optional
-    year = "(?:,? *"+year_num+page_num+"| *\("+year_num+page_num+"\))"
-    regex = "(" + author + additional+"*" + year + ")"
-
-    return re.compile(regex, flags=(re.I))
+    return sentenceList
 
 
 def search_citation(text, exp):
+    '''Finds sentences around citations, where the regexp `exp matches'''
+
     text = text.decode('utf-8')
     lines = text.split('\n')
     text = ' '.join(lines)
     text = ' '.join(text.split())
     text = ftfy.fix_text(text)
     logging.info("Search...'{0!s}'".format(exp))
-    sentences, st_index = split_sentences(text)
-    regex = citation_regex()
+
+    sentences = split_sentences(text)
+    regex = re.compile(exp, flags=(re.I))
+
     founds = set()
-    for m in regex.finditer(text):
-        s = m.group(1)
-        n = re.findall(exp, s, flags=(re.I))
-        if n:
-            a = m.start(1)
-            idx = bisect(st_index, int(a))
-            st = sentences[idx-1]
-            #logging.debug("%s: '%s'" % (exp, st))
-            founds.add(st)
+    for sent in sentences:
+        if regex.search(sent):
+            founds.add(sent)
     return founds
 
 
 if __name__ == "__main__":
     args = get_args()
+    regexp_list = build_regexp_list(args)
     if args.verbose:
         setup_logger(logging.DEBUG)
     else:
@@ -173,7 +185,7 @@ if __name__ == "__main__":
     else:
         logging.info("Current text files directory... ({0!s})".format(args.txt_dir))
 
-    with open(args.input, 'r') as f:
+    with open(args.input, 'r',encoding="utf-8") as f:
         reader = csv.DictReader(f)
         i = 0
         for r in reader:
@@ -182,7 +194,7 @@ if __name__ == "__main__":
             try:
                 txtfile = os.path.join(args.txt_dir, "{0:d}.txt".format(i))
                 if not args.force and os.path.exists(txtfile):
-                    logging.info("Use exists text file...'{0!s}'".format(txtfile))
+                    logging.info("Use existing text file...'{0!s}'".format(txtfile))
                     with open(txtfile, 'rb') as f:
                         text = f.read()
                 else:
@@ -191,10 +203,10 @@ if __name__ == "__main__":
                     with open(txtfile, 'wb') as f:
                         f.write(text)
                 founds = set()
-                for e in args.regex:
-                    results = search_citation(text, e)
+                for regexp in regexp_list:
+                    results = search_citation(text, regexp)
                     founds.update(results)
-                    logging.info("Regex: '{0!s}', Found: {1:d}".format(e, len(results)))
+                    logging.info("Regex: '{0!s}', Found: {1:d}".format(regexp, len(results)))
                 r['founds'] = '\n'.join(founds)
                 r['status'] = 'OK'
             except Exception as e:
@@ -204,7 +216,7 @@ if __name__ == "__main__":
             output.append(r)
 
     logging.info("Save output to file...'{0!s}'".format(args.output))
-    with open(args.output, 'w') as f:
+    with open(args.output, 'w',encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=['url', 'title', 'authors',
                                 'summary', 'cited_by', 'pdf_url',
                                 'pdf_path', 'founds', 'status'])
