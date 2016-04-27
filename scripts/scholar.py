@@ -19,7 +19,7 @@ try:
                                 HTTPSHandler, HTTPCookieProcessor)
 except ImportError:
     from urllib import urlencode
-    from urllib2 import (build_opener, HTTPRedirectHandler, HTTPHandler,
+    from urllib import (build_opener, HTTPRedirectHandler, HTTPHandler,
                          HTTPSHandler, HTTPCookieProcessor)
 
 import http.cookiejar
@@ -170,6 +170,10 @@ class ScholarWebClient(object):
         return os.path.join(TMP_DIR, path)
 
     def query(self, query='', author=''):
+
+        #remove nonascii characters from the query
+        query = re.sub(r'[^\x00-\xff]',r' ',query)
+
         logging.info("Query...'{0!s}'".format(query))
         if USE_TMP and os.path.exists(self.tmp_path('query.html')):
             logging.info("Use temporary file...")
@@ -271,17 +275,17 @@ class ScholarWebClient(object):
                     title_url = title.a['href']
                 else:
                     title_url = ''
-                title_text = title.text.encode('utf-8')
+                title_text = title.text#.encode('utf-8')
             else:
                 title_text = ''
             authors = r.find('div', class_='gs_a')
             if authors:
-                authors_text = authors.text.encode('utf-8')
+                authors_text = authors.text#.encode('utf-8')
             else:
                 authors_text = ''
             summary = r.find('div', class_='gs_rs')
             if summary:
-                summary_text = summary.text.encode('utf-8')
+                summary_text = summary.text#.encode('utf-8')
             else:
                 summary_text = ''
             pdf_url = ''
@@ -402,6 +406,7 @@ if __name__ == "__main__":
             logging.error("Google detected, we're a robot.")
             break
         cites = session.get_cites(html)
+
         all_cites += cites
         time.sleep(1)
 
@@ -421,7 +426,7 @@ if __name__ == "__main__":
                 # Download PDF files
                 session.download(pdf_url, path)
 
-    with open(args.output, 'w') as f:
+    with open(args.output, 'w',encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=['url', 'title', 'authors',
                                 'summary', 'cited_by', 'pdf_url', 'pdf_path'])
         writer.writeheader()
