@@ -66,36 +66,54 @@ python scholar.py -v -d pdfs -o output.csv -n 100 -a "A Einstein" \
 
 #### Parse the Data 
 
-To scrape the text next to the relevant citations within the pdfs, use [searchpdf.py](scripts/searchpdf.py):
+To scrape the text next to the relevant citations within the pdfs, use [autosumpdf.py](scripts/autosumpdf.py):
 
 1. The script iterates through the pdfs using the csv generated above. 
-2. Based on regex, gets the text and puts it in the same csv. If multiple regex are matched, everything is concatenated with a line space.
+2. Using citation information, or a custom regexp gets the text and puts it in the same csv. If multiple regex are matched, everything is concatenated with a line space.
 3. [Sample output](testout/einstein_cites_100.csv)
 
 ```
 usage: searchpdf.py [-h] [-i INPUT] [-o OUTPUT] [-v] [--version]
                     regex [regex ...]
 
-positional arguments:
-  regex                 Regex to be search
-
 optional arguments:
-  -h, --help            show this help message and exit
+   -h, --help            show this help message and exit
   -i INPUT, --input INPUT
                         CSV input filename
   -o OUTPUT, --output OUTPUT
                         CSV output filename
+  -t TXT_DIR, --text TXT_DIR
+                        extract to specific directory
+  -f, --force           force extract text file if exists
   -v, --verbose
+  -a1 AUTHOR1, --author-1-lastname AUTHOR1
+                        1st author of citation
+  -a2 AUTHOR2, --author-2-lastname AUTHOR2
+                        2nd author of citation
+  -y YEAR, --year YEAR  Year of publication
   --version             show program's version number and exit
+  -r REGEX, --regex REGEX
+                        specify custom regex to filter citations.
 ```
 
 **Example**  
 ```
-python searchpdf.py -v -i output.csv -o search-output.csv "\.\s(.{5,100}[\[\(]?Einstein.{2,30}\d+[\]\)])"
+python searchpdf.py -v -i output.csv -o search-output.csv -r "\.\s(.{5,100}[\[\(]?Einstein.{2,30}\d+[\]\)])"
 ```
 
-The regular expression matches a sentence (max 100 chars) following by author name "Einstein", any words (max 30 chars) and number with close bracket at the end.
+The custom regular expression (-r switch) matches a sentence (max 100 chars) following by author name "Einstein", any words (max 30 chars) and number with close bracket at the end.
 
+Depending on the command line arguments (-a1, -a2, -y) the following citation patterns will be automatically used for finding matching sentences.
+(Author1_Last_Name Year)
+(Author1_Last_Name et al.)
+(Author1_Last_Name et al. Year)
+(Author1_Last_Name et al., Year)
+(Author1_Last_Name and Author2_Last_Name)
+(Author1_Last_Name and Author2_Last_Name Year)
+(Author1_Last_Name, and Author2_Last_Name Year)
+(Author1_Last_Name and Author2_Last_Name, Year)
+(Author1_Last_Name & Author2_Last_Name Year)
+(Author1_Last_Name & Author2_Last_Name, Year)
 -----------------------
 
 #### Example from Social Science
@@ -109,11 +127,11 @@ The regular expression matches a sentence (max 100 chars) following by author na
 
 * **Searching in the Test Data**
   * [Sample input data](testdat/)
-  * Use [autosumpdf.py](scripts/autosumpdf.py) to filter citations to Iyengar et al. 2012 using the regular expression "Iyengar.{3,30}2012":
+  * Use [autosumpdf.py](scripts/autosumpdf.py) to filter citations to Iyengar et al. 2012:
     ```
-    python autosumpdf.py -v -i testdata.csv -o search-testdata-new.csv "Iyengar.{3,30}2012"
+    python autosumpdf.py -v -i testdata.csv -o search-testdata-new.csv -a1 "Iyengar" -y "2012"
     ```
-  * [Ouput](testout/iyengar_et_al.csv)
+
 
 * **Miscitations**    
   Social scientists hold that few truths are self-evident. But some truths become obvious to all social scientists after some years of experience, including: a) [Peer review is a mess](http://gbytes.gsood.com/2015/07/24/reviewing-the-peer-review-with-reviews-as-data/), b) Faculty hiring is idiosyncratic, and c) Research is often miscited. Here we quantify the last portion.  
