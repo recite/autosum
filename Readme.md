@@ -103,7 +103,7 @@ python searchpdf.py -v -i output.csv -o search-output.csv -r "\.\s(.{5,100}[\[\(
 
 The custom regular expression (-r switch) matches a sentence (max 100 chars) following by author name "Einstein", any words (max 30 chars) and number with close bracket at the end.
 
-Depending on the command line arguments (-a1, -a2, -y) the following citation patterns will be automatically used for finding matching sentences.
+Depending on the command line arguments (-a1, -a2, -y) the following citation patterns will be automatically used for finding matching sentences:
 * Author1_Last_Name Year
 * Author1_Last_Name et al.
 * Author1_Last_Name et al. Year
