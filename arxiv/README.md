@@ -28,7 +28,7 @@ python build_cited_by.py
 
 (output = article_id, citing_article_ids separated by comma)
 
-[```hep-ph-cited-by.csv```](arxiv/hep-ph-cited-by.csv)
+Please look at the output [`hep-ph-cited-by.csv`](hep-ph-cited-by.csv)
 
 ## Step 2
 
@@ -157,5 +157,5 @@ python autosum_arxiv.py
 
 The output will be saved as `hep-th-cited-by-sentences.csv`. Please note that the script may take a few days to process all of 23k articles.
 
-Please look at the sample output (first 100 articles) [hep-th-cited-by-sentences-sample.csv](arxiv/hep-th-cited-by-sentences-sample.csv)
+Please look at the sample output (first 100 articles) [`hep-th-cited-by-sentences-sample.csv`](hep-th-cited-by-sentences-sample.csv)
 
