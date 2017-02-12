@@ -2,6 +2,14 @@
 
 For quick start we are using the [KDD Cup 2003 Dataset](http://www.cs.cornell.edu/projects/kddcup/datasets.html)
 
+## Step 0
+
+Download all papers in the hep-th portion of the arXiv until May 1, 2003 from KDD Cup 2003
+
+```
+python download_kdd2003.py
+```
+
 ## Step 1
 
 Parse all the citations.
