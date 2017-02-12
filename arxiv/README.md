@@ -28,7 +28,7 @@ python build_cited_by.py
 
 (output = article_id, citing_article_ids separated by comma)
 
-Please look at the output [`hep-ph-cited-by.csv`](hep-ph-cited-by.csv)
+Please look at the output [`hep-th-cited-by.csv`](hep-th-cited-by.csv)
 
 ## Step 2
 
